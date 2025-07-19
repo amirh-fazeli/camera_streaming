@@ -1,23 +1,23 @@
+// src/App.jsx
 import { useState } from 'react';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import './App.css';
 
-
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loggedIn, setLoggedIn]     = useState(false);
+  const [username, setUsername]     = useState('');
   const [cameraCount, setCameraCount] = useState(null);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+  // called with (username) when login succeeds
+  const handleLogin = (user) => {
+    setUsername(user);
     setLoggedIn(true);
   };
 
   const handleCameraSubmit = (e) => {
     e.preventDefault();
-    const count = parseInt(e.target.elements.camcount.value);
+    const count = parseInt(e.target.elements.camcount.value, 10);
     if (!isNaN(count) && count > 0) {
       setCameraCount(count);
     }
@@ -26,13 +26,7 @@ function App() {
   return (
     <div className="app-container">
       {!loggedIn && (
-        <LoginPage
-          username={username}
-          setUsername={setUsername}
-          password={password}
-          setPassword={setPassword}
-          onLogin={handleLogin}
-        />
+        <LoginPage onLogin={handleLogin} />
       )}
 
       {loggedIn && cameraCount === null && (

@@ -40,3 +40,8 @@
 .login-form button:hover {
   background-color: #ff1493;
 }
+
+.login-error {
+  color: red;
+  margin-top: 0.5em;
+}

@@ -1,81 +1,45 @@
-const db = require('./db');
+const { pool } = require('./db');
 
-// Add cameras for a user: replace existing cameras with the given list
-// camerasJson is an object like: { username: "user1", cameras: [ {uuid, camera_name, ip_address, port, stream_url}, ... ] }
-function addCameras(username, camerasJson, callback) {
-  // Start a transaction for safety and performance
-  db.serialize(() => {
-    db.run('BEGIN TRANSACTION');
-
-    // Delete all cameras for this user first
-    db.run(`DELETE FROM cameras WHERE username = ?`, [username], function(err) {
-      if (err) {
-        db.run('ROLLBACK');
-        return callback(err);
-      }
-
-      // Prepare insert statement
-      const insertStmt = db.prepare(`
-        INSERT INTO cameras (username, uuid, camera_name, ip_address, port, stream_url)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `);
-
-      try {
-        for (const cam of camerasJson.cameras) {
-          insertStmt.run(
-            username,
-            cam.uuid || null,
-            cam.camera_name || null,
-            cam.ip_address || null,
-            cam.port || null,
-            cam.stream_url || null
-          );
-        }
-      } catch (e) {
-        db.run('ROLLBACK');
-        return callback(e);
-      }
-
-      insertStmt.finalize((err) => {
-        if (err) {
-          db.run('ROLLBACK');
-          return callback(err);
-        }
-        db.run('COMMIT');
-        callback(null);
-      });
-    });
-  });
+async function getCamerasByUsername(username) {
+  const res = await pool.query(
+    `SELECT c.id, c.rtsp_url, c.name
+     FROM cameras c
+     JOIN users u ON c.user_id = u.id
+     WHERE u.username = $1
+     ORDER BY c.id`,
+    [username]
+  );
+  return res.rows;
 }
 
-// Get all cameras for a user, return JSON { username, cameras: [...] }
-function getCameras(username, callback) {
-  const sql = `
-    SELECT uuid, camera_name, ip_address, port, stream_url
-    FROM cameras
-    WHERE username = ?
-  `;
+async function addCamera(username, rtsp_url, name) {
+  const userRes = await pool.query(
+    `SELECT id FROM users WHERE username = $1`,
+    [username]
+  );
+  if (userRes.rowCount === 0) {
+    throw new Error(`User '${username}' not found`);
+  }
+  const userId = userRes.rows[0].id;
 
-  db.all(sql, [username], (err, rows) => {
-    if (err) return callback(err);
+  let finalName = name && name.trim();
+  if (!finalName) {
+    const countRes = await pool.query(
+      `SELECT COUNT(*) FROM cameras WHERE user_id = $1`,
+      [userId]
+    );
+    const index = parseInt(countRes.rows[0].count, 10) + 1;
+    finalName = `Camera ${index}`;
+  }
 
-    // Build JSON response format
-    const result = {
-      username: username,
-      cameras: rows.map(row => ({
-        uuid: row.uuid,
-        camera_name: row.camera_name,
-        ip_address: row.ip_address,
-        port: row.port,
-        stream_url: row.stream_url
-      }))
-    };
-
-    callback(null, result);
-  });
+  // Insert
+  const insertRes = await pool.query(
+    `INSERT INTO cameras (user_id, rtsp_url, name)
+     VALUES ($1, $2, $3)
+     RETURNING id, rtsp_url, name, created_at`,
+    [userId, rtsp_url, finalName]
+  );
+  return insertRes.rows[0];
 }
 
-module.exports = {
-  addCameras,
-  getCameras
-};
+module.exports = { getCamerasByUsername, addCamera };

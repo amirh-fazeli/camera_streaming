@@ -1,32 +1,28 @@
-const db = require('./db');
+const bcrypt = require('bcrypt');
+const { pool } = require('./db');
 
-// Add a new user
-function addUser(username, password, callback) {
-  const sql = `INSERT INTO users (username, password) VALUES (?, ?)`;
-  db.run(sql, [username, password], function(err) {
-    if (err) {
-      return callback(err);
-    }
-    callback(null); // success
-  });
+const SALT_ROUNDS = 10;
+
+async function addUser(username, password) {
+  const hash = await bcrypt.hash(password, SALT_ROUNDS);
+  const result = await pool.query(
+    `INSERT INTO users (username, password_hash)
+     VALUES ($1, $2)
+     RETURNING id, username, created_at`,
+    [username, hash]
+  );
+  return result.rows[0];
 }
 
-// Verify user login: check if username exists and password matches
-function verifyUser(username, password, callback) {
-  const sql = `SELECT password FROM users WHERE username = ?`;
-  db.get(sql, [username], (err, row) => {
-    if (err) return callback(err);
-    if (!row) return callback(null, false); // user not found
-    // Simple password check (in real apps, hash the password!)
-    if (row.password === password) {
-      callback(null, true);
-    } else {
-      callback(null, false);
-    }
-  });
+async function verifyUser(username, password) {
+  const res = await pool.query(
+    `SELECT id, password_hash FROM users WHERE username = $1`,
+    [username]
+  );
+  if (res.rowCount === 0) return null;
+  const { id, password_hash } = res.rows[0];
+  const ok = await bcrypt.compare(password, password_hash);
+  return ok ? { id, username } : null;
 }
 
-module.exports = {
-  addUser,
-  verifyUser
-};
+module.exports = { addUser, verifyUser };
