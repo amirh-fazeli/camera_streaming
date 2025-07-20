@@ -23,8 +23,8 @@ async function seed() {
     }
 
     // 3. generate API_KEY and SRT_KEY, insert into helpers table
-    const apiKey = crypto.randomBytes(32).toString('hex');
-    const srtKey = crypto.randomBytes(16).toString('hex');
+    const apiKey = "96da00a7586d0ff930bb9042872b165fdce415e161773a4cf01214dbc665194a";
+    const srtKey = "530f383daea7a1d70827878d535c0bf3";
     const helperName = 'HelperBox1';
     await pool.query(
       `INSERT INTO helpers (name, api_key, srt_key, user_id)
