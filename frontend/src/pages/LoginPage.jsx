@@ -4,14 +4,14 @@ import './LoginPage.css';
 import { useTranslation } from 'react-i18next';
 
 export default function LoginPage({ onLogin }) {
-  const { t, i18n } = useTranslation();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError]     = useState('');
+   const { t, i18n } = useTranslation();
+   const [username, setUsername] = useState('');
+   const [password, setPassword] = useState('');
+   const [error, setError]     = useState('');
 
-  const switchLang = () => {
-    i18n.changeLanguage(i18n.language === 'en' ? 'fa' : 'en');
-  };
+   const switchLang = () => {
+     i18n.changeLanguage(i18n.language === 'en' ? 'fa' : 'en');
+   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,8 +37,11 @@ export default function LoginPage({ onLogin }) {
       return;
     }
 
-    // *outside* the try/catch so we don't mask callback errors as "network"
-    onLogin(body.username);
+    localStorage.setItem('jwt', body.token);
+    localStorage.setItem('username', body.username || username);
+
+    // tell the app we're now logged in
+    onLogin();
   };
 
   return (
