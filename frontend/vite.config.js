@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // or '0.0.0.0'
-  },
+    proxy: {
+      // any request to /auth or /users will be forwarded:
+      '/auth':   { target: 'http://localhost:3001', changeOrigin: true },
+      '/users':  { target: 'http://localhost:3001', changeOrigin: true },
+      '/streams':{ target: 'http://localhost:3001', changeOrigin: true },
+    }
+  }
 });
