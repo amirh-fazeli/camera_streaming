@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';  // make sure you import the CSS
-import CameraView from './components/CameraView';
+import CameraView from '../components/CameraView';
 
 /**
  * Dashboard shows a responsive grid of video tiles
