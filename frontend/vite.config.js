@@ -1,15 +1,15 @@
-// vite.config.js
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import react      from '@vitejs/plugin-react';
+
+console.log('🔧 Vite config loaded!');  // DEBUG LINE
 
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // any request to /auth or /users will be forwarded:
-      '/auth':   { target: 'http://localhost:3001', changeOrigin: true },
-      '/users':  { target: 'http://localhost:3001', changeOrigin: true },
-      '/streams':{ target: 'http://localhost:3001', changeOrigin: true },
+      '/auth':    { target: 'http://localhost:3001', changeOrigin: true },
+      '/users':   { target: 'http://localhost:3001', changeOrigin: true },
+      '/streams': { target: 'http://localhost:3001', changeOrigin: true },
     }
   }
 });

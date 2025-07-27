@@ -34,6 +34,7 @@ function startListener(id, portOffset) {
 
   // Launch FFplay in detached mode and inject SDL hint
   const args = [
+    '-loglevel', 'debug',
     '-fflags', 'nobuffer',
     '-x', '640',        // window width
     '-y', '360',        // window height
@@ -41,8 +42,8 @@ function startListener(id, portOffset) {
   ];
   const child = spawn('ffplay', args, {
     shell: true,
-    detached: true,
-    stdio: 'ignore',
+  // detached: true,
+  // stdio: 'ignore',
     windowsHide: false,
     env: Object.assign({}, process.env, {
       SDL_VIDEO_MINIMIZE_ON_FOCUS_LOST: '0'
