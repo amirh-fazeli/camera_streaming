@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './Dashboard.css';  // make sure you import the CSS
+import CameraView from './components/CameraView';
 
 /**
  * Dashboard shows a responsive grid of video tiles
@@ -38,6 +39,20 @@ export default function Dashboard() {
     fetchCameras();
   }, []);
 
+  useEffect(() => {
+    if (Hls.isSupported()) {
+      cameras.forEach(cam => {
+        const video = document.getElementById(`video-${cam.id}`);
+        if (video) {
+          const hls = new Hls();
+          hls.loadSource(`/streams/cam_${cam.id}/index.m3u8`);
+          hls.attachMedia(video);
+        }
+      });
+    }
+  }, [cameras]);
+
+
   if (loading) return <div className="status">Loading cameras…</div>;
   if (error)   return <div className="status error">Error: {error}</div>;
 
@@ -54,13 +69,14 @@ export default function Dashboard() {
          return (
            <div key={cam.id} className="video-tile">
              <video
-               src={src}
-               controls
-               autoPlay
-               muted
-               playsInline
-               className="video-element"
-             />
+              id={`video-${cam.id}`}
+              controls
+              autoPlay
+              muted
+              playsInline
+              className="video-element"
+            />
+
              <div className="caption">{cam.name || `Camera ${cam.id}`}</div>
            </div>
          );
