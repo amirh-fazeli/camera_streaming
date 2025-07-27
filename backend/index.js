@@ -24,9 +24,11 @@ app.use('/users', authUser, require('./routes/cameras'));
 app.use('/helpers', authHelper, require('./routes/helper'));
 
 const path = require('path');
+
+const streamsPath = path.resolve(__dirname, '../cloud_reciever/public/streams');
 app.use(
   '/streams',
-  express.static(path.join(__dirname, '../cloud-receiver/public/streams'), {
+  express.static(streamsPath, {
     etag: false,
     maxAge: '0',
     setHeaders: (res, filePath) => {
@@ -36,6 +38,7 @@ app.use(
     }
   })
 );
+
 
 
 // Healthcheck
@@ -50,4 +53,3 @@ app.listen(PORT, () => {
   console.log(`API running on port ${PORT}`);
 });
 
-app.use('/streams', express.static(path.join(__dirname, 'public/streams')));
